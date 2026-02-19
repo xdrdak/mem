@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# za - zellij session manager
+# List, find, attach, or destroy zellij sessions using gum
+
+set -e
+
+# Get list of sessions (raw output with colors)
+sessions=$(zellij list-sessions 2>/dev/null || true)
+
+# Check if no sessions exist
+if [[ -z "$sessions" ]]; then
+    gum style --foreground 240 "No zellij sessions found"
+    exit 0
+fi
+
+# Display sessions with fuzzy filter
+# Extract session name (first word, strip ANSI codes) for selection
+# but display full line for context
+selected_line=$(echo "$sessions" | gum filter --header "Select a session" --placeholder "Search sessions...")
+
+# Exit if nothing selected
+if [[ -z "$selected_line" ]]; then
+    exit 0
+fi
+
+# Extract session name (first field, strip ANSI escape codes)
+session_name=$(echo "$selected_line" | sed 's/\x1b\[[0-9;]*m//g' | awk '{print $1}')
+
+# Choose action
+action=$(gum choose "Attach" "Destroy" --header "Action for '$session_name'")
+
+case "$action" in
+    "Attach")
+        zellij attach "$session_name"
+        ;;
+    "Destroy")
+        if gum confirm "Destroy session '$session_name'?"; then
+            zellij delete-session -f "$session_name"
+            gum style --foreground 2 "Session '$session_name' destroyed"
+        fi
+        ;;
+esac
