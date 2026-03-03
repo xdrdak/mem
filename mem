@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Text formatting
+BOLD='\033[1m'
+# Reset
+NC='\033[0m'
+
+binpath="$HOME/.local/bin"
+echo "Listing scripts of $binpath"
+echo "---"
+
+# Bin Path
+# Get all scripts in the directory (exclude .md files)
+scripts=$(find ~/.local/bin -maxdepth 1 \( -type f -o -type l \) -name '*' ! -name '*.*' | xargs -n1 basename | sort)
+
+# For each script, check if there's a corresponding .md file and display with documentation
+for script in $scripts; do
+    doc_file="${binpath}/${script}.md"
+    if [ -f "$doc_file" ]; then
+        # Extract the first line from the .md file as documentation
+        doc=$(head -n 1 "$doc_file" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+        echo "${BOLD}$script${NC} - $doc"
+    else
+        echo "$script"
+    fi
+done
