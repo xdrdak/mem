@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ -z "$1" ]; then
+  echo "Usage: pk <port>"
+  echo "  Kills the process running at the specified port."
+  echo ""
+  echo "Example:"
+  echo "  pk 3000  # kills process at port 3000"
+  exit 1
+fi
+
+kill -9 $(lsof -ti:$1)
